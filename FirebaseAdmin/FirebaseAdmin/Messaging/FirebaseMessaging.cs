@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Google.Apis.Http;
 
 namespace FirebaseAdmin.Messaging
 {
@@ -27,11 +26,13 @@ namespace FirebaseAdmin.Messaging
     public sealed class FirebaseMessaging : IFirebaseService
     {
         private readonly FirebaseMessagingClient messagingClient;
+        private readonly InstanceClient instanceClient;
 
         private FirebaseMessaging(FirebaseApp app)
         {
             this.messagingClient = new FirebaseMessagingClient(
                     app.Options.HttpClientFactory, app.Options.Credential, app.GetProjectId());
+            this.instanceClient = new InstanceClient(app.Options.HttpClientFactory, app.Options.Credential);
         }
 
         /// <summary>
@@ -295,11 +296,64 @@ namespace FirebaseAdmin.Messaging
         }
 
         /// <summary>
+        /// Subscribe to a topic from Instance Services.
+        /// </summary>
+        /// <param name="topic">The topic to subscribe to.</param>
+        /// <param name="registrationTokens">The registration tokens to subscribe to.</param>
+        /// <returns>A <see cref="TopicManagementResponse"/> containing details of subscription.</returns>
+        public async Task<TopicManagementResponse> SubscribeToTopicAsync(
+            string topic, IList<string> registrationTokens)
+        {
+            return await this.SubscribeToTopicAsync(topic, registrationTokens, default);
+        }
+
+        /// <summary>
+        /// Subscribe to a topic from Instance Services.
+        /// </summary>
+        /// <param name="topic">The topic to subscribe to.</param>
+        /// <param name="registrationTokens">The registration tokens to subscribe to.</param>
+        /// <param name="cancellationToken">A cancellation token to monitor the asynchronous
+        /// operation.</param>
+        /// <returns>A <see cref="TopicManagementResponse"/> containing details of subscription.</returns>
+        public async Task<TopicManagementResponse> SubscribeToTopicAsync(
+            string topic, IList<string> registrationTokens, CancellationToken cancellationToken)
+        {
+            return await this.instanceClient.SubscribeToTopic(topic, registrationTokens, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Unsubscribe from a topic from Instance Services.
+        /// </summary>
+        /// <param name="topic">The topic to unsubscribe to.</param>
+        /// <param name="registrationTokens">The registration tokens to unsubscribe to.</param>
+        /// <returns>A <see cref="TopicManagementResponse"/> containing details of action.</returns>
+        public async Task<TopicManagementResponse> UnsubscribeFromTopicAsync(
+            string topic, IList<string> registrationTokens)
+        {
+            return await this.UnsubscribeFromTopicAsync(topic, registrationTokens, default);
+        }
+
+        /// <summary>
+        /// Unsubscribe from a topic from Instance Services.
+        /// </summary>
+        /// <param name="topic">The topic to unsubscribe to.</param>
+        /// <param name="registrationTokens">The registration tokens to unsubscribe to.</param>
+        /// <param name="cancellationToken">A cancellation token to monitor the asynchronous
+        /// operation.</param>
+        /// <returns>A <see cref="TopicManagementResponse"/> containing details of action.</returns>
+        public async Task<TopicManagementResponse> UnsubscribeFromTopicAsync(
+            string topic, IList<string> registrationTokens, CancellationToken cancellationToken)
+        {
+            return await this.instanceClient.UnsubscribeFromTopic(topic, registrationTokens, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Deletes this <see cref="FirebaseMessaging"/> service instance.
         /// </summary>
         void IFirebaseService.Delete()
         {
             this.messagingClient.Dispose();
+            this.instanceClient.Dispose();
         }
     }
 }
