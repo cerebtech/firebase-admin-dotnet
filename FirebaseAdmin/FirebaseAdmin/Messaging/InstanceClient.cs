@@ -88,7 +88,7 @@ namespace FirebaseAdmin.Messaging
 
         private static void AddCommonHeaders(HttpRequestMessage request)
         {
-            request.Headers.Add("X-Firebase-Client", ClientVersion);
+            request.Headers.Add("access_token_auth", "true");
         }
 
         private async Task<TopicManagementResponse> SendInstanceIdRequest(
